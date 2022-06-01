@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A sample template
+Resources:
+  CFVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+       - Key: Name
+         Value: CFVPC
+
+  CFInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: CF-IGW
+
+  CFAttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: CFVPC
+      InternetGatewayId:
+        Ref: CFInternetGateway
+
+  CFPUBSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: CFVPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: "true"
+      Tags:
+      - Key: Name
+        Value: CF-PUB-SUB
+
+  CFPVTSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: CFVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: "us-east-1b"
+      MapPublicIpOnLaunch: "false"
+      Tags:
+      - Key: Name
+        Value: CF-PVT-SUB
+
+  CFPUBRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: CFVPC
+      Tags:
+      - Key: Name
+        Value: CF-PUB-RT 
+
+  CFPVTRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: CFVPC
+      Tags:
+      - Key: Nane
+        Value: CF-PVT-RT
+
+  CFIGWRoute:
+    Type: AWS::EC2::Route
+    DependsOn: CFAttachGateway
+    Properties:
+       RouteTableId:
+         Ref: CFPUBRouteTable
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: CFInternetGateway
+
+  CFPUBSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: CFPUBSubnet
+      RouteTableId:
+        Ref: CFPUBRouteTable
+
+  CFPVTSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: CFPVTSubnet
+      RouteTableId:
+        Ref: CFPVTRouteTable               
+
+
+                            
